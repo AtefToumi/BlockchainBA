@@ -41,6 +41,38 @@ class Blockchain:
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"
 
+    def valid_chain(self):
+        """
+        Determine if a given blockchain is valid
+        :param chain: A blockchain
+        :return: True if valid, False if not
+        """
+
+        last_block = self.chain[0]
+        current_index = 1
+
+        while current_index < len(self.chain):
+            block = self.chain[current_index]
+            print(f'{last_block}')
+            print(f'{block}')
+            print("\n-----------\n")
+            # Check that the hash of the block is correct
+            last_block_hash = hash(last_block)
+            if block['previous_hash'] != last_block_hash:
+                print("\nCHAIN IS NOT VALID\n")
+                return False
+
+            # Check that the Proof of Work is correct
+            if not self.valid_proof(last_block['proof'], block['proof'], last_block_hash):
+                print("\nCHAIN IS NOT VALID\n")
+                return False
+
+            last_block = block
+            current_index += 1
+
+        print("\nCHAIN IS VALID\n")
+        return True
+
     def new_transaction(self, sender_wallet, recipient_wallet, amount):
         transaction = Transaction(sender_wallet, recipient_wallet, amount)
         self.current_transactions.append(transaction.get_dict())
@@ -129,3 +161,4 @@ print("Current transactions are : \n", blockchain.current_transactions , "\n")
 print("Current chain : \n", blockchain.chain, "\n")
 blockchain.mine()
 print("chain after mining : \n", blockchain.chain, "\n")
+blockchain.valid_chain()
