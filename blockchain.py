@@ -1,6 +1,6 @@
 import hashlib
 import json
-from crypto import hash
+from crypto import hash, sign
 from block import Block
 from transaction import Transaction
 from wallet import Wallet
@@ -39,7 +39,11 @@ class Blockchain:
 
         guess = f'{last_proof}{proof}{last_hash}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
-        return guess_hash[:4] == "0000"
+        if guess_hash[:7] == "0000000":
+            print(guess_hash)
+            return True
+        else:
+            return False
 
     def valid_chain(self):
         """
@@ -53,18 +57,20 @@ class Blockchain:
 
         while current_index < len(self.chain):
             block = self.chain[current_index]
-            print(f'{last_block}')
-            print(f'{block}')
-            print("\n-----------\n")
+            # print(f'{last_block}')
+            # print(f'{block}')
+            # print("\n-----------\n")
             # Check that the hash of the block is correct
             last_block_hash = hash(last_block)
-            if block['previous_hash'] != last_block_hash:
-                print("\nCHAIN IS NOT VALID\n")
+            if block['previous_hash'] != last_block_hash.hexdigest():
+                print("\nCHAIN IS NOT VALID : Block number : ", current_index)
+                print(block['previous_hash'])
+                print(last_block_hash)
                 return False
 
             # Check that the Proof of Work is correct
-            if not self.valid_proof(last_block['proof'], block['proof'], last_block_hash):
-                print("\nCHAIN IS NOT VALID\n")
+            if not self.valid_proof(last_block['proof'], block['proof'], last_block_hash.hexdigest()):
+                print("\nPROOF IS NOT VALID, index\n")
                 return False
 
             last_block = block
@@ -74,8 +80,10 @@ class Blockchain:
         return True
 
     def new_transaction(self, sender_wallet, recipient_wallet, amount):
-        transaction = Transaction(sender_wallet, recipient_wallet, amount)
-        self.current_transactions.append(transaction.get_dict())
+        transaction = Transaction(sender_wallet.id, recipient_wallet.id, amount)
+        transaction.sign_transaction(sender_wallet.private_key)
+        print(transaction.to_dict())
+        self.current_transactions.append(transaction.to_dict())
         return transaction
 
     def check_wallet(self, wallet_id):
@@ -103,7 +111,7 @@ class Blockchain:
         # Reset the current list of transactions
         self.current_transactions = []
 
-        self.chain.append(block.get_dict())
+        self.chain.append(block.to_dict())
         return block
 
     def mine(self):
@@ -114,14 +122,14 @@ class Blockchain:
         # We must receive a reward for finding the proof.
         # The sender is "0" to signify that this node has mined a new coin.
         blockchain.new_transaction(
-            reward_wallet.id,
-            node_wallet.id,
+            reward_wallet,
+            node_wallet,
             1,
         )
 
         # Forge the new Block by adding it to the chain
         previous_hash = hash(last_block)
-        block = self.new_block(proof, previous_hash)
+        block = self.new_block(proof, previous_hash.hexdigest())
 
         response = {
             'message': "New Block Forged",
@@ -144,7 +152,7 @@ class Blockchain:
         """
 
         last_proof = last_block['proof']
-        last_hash = hash(last_block)
+        last_hash = hash(last_block).hexdigest()
 
         proof = 0
         while self.valid_proof(last_proof, proof, last_hash) is False:
@@ -154,9 +162,9 @@ class Blockchain:
 
 
 blockchain = Blockchain()
-blockchain.new_transaction(w1.id, w2.id, 5)
-blockchain.new_transaction(w3.id, w4.id, 15)
-blockchain.new_transaction(w5.id, w1.id, 11)
+blockchain.new_transaction(w1, w2, 5)
+blockchain.new_transaction(w3, w4, 15)
+blockchain.new_transaction(w5, w1, 11)
 print("Current transactions are : \n", blockchain.current_transactions , "\n")
 print("Current chain : \n", blockchain.chain, "\n")
 blockchain.mine()

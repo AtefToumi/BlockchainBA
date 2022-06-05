@@ -1,3 +1,4 @@
+import collections
 from time import time
 
 
@@ -9,11 +10,11 @@ class Block:
         self.proof = proof
         self.previous_hash = previous_hash
 
-    def get_dict(self):
-        return {
+    def to_dict(self):
+        return collections.OrderedDict({
             "index": self.index,
             "timestamp": self.timestamp,
             "transactions": self.transactions,
             "proof": self.proof,
             "previous_hash": self.previous_hash,
-        }
+        })
