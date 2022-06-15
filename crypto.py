@@ -20,7 +20,6 @@ def import_private_key(key):
 
 
 def sign(private_key, hashed):
-    print(hashed)
     signer = pkcs1_15.new(private_key)
     return signer.sign(hashed)
 

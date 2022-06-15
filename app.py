@@ -27,16 +27,16 @@ def new_transaction():
     if not all(k in values for k in required):
         return 'Missing values', 400
 
-    if (blockchain.check_wallet(values['sender_wallet_id']) and blockchain.check_wallet(values['recipient_wallet_id'])):
-        # Create a new Transaction
-        transaction = blockchain.new_transaction(values['sender_wallet_id'], values['recipient_wallet_id'],
-                                                 values['amount'])
-    else:
-        return jsonify({'message': f'Wallets are incorrect'})
+    sender_wallet = blockchain.get_wallet(values['sender_wallet_id'])
+    recipient_wallet = blockchain.get_wallet(values['recipient_wallet_id'])
+    # Create a new Transaction
+    transaction = blockchain.new_transaction(sender_wallet, recipient_wallet,
+                                             values['amount'])
 
-    reponse = {'message': f'Transaction will be added to the next Block',
-               'transaction': json.dumps(transaction, indent=4, sort_keys=True, default=vars)
-               }
+    reponse = {
+        'message': f'Transaction will be added to the next Block',
+        'transaction': json.dumps(transaction.to_dict())
+    }
 
     return jsonify(reponse), 201
 
@@ -48,10 +48,19 @@ def all_transactions():
     }
     return jsonify(response), 200
 
+@app.route('/mine', methods=['GET'])
+def mine():
+
 
 @app.route('/users/new_client', methods=['POST'])
 def new_client():
     pass
+
+
+@app.route('/wallets', methods=['GET'])
+def get_wallets():
+    response = {'Wallets available are : ': json.dumps(blockchain.wallets)}
+    return jsonify(response), 200
 
 
 if __name__ == '__main__':
@@ -63,5 +72,3 @@ if __name__ == '__main__':
     port = args.port
 
     app.run(host='0.0.0.0', port=port)
-
-

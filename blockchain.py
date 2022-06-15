@@ -17,6 +17,7 @@ reward_wallet = Wallet(999)
 class Blockchain:
     def __init__(self):
         self.current_transactions = []
+        self.verified_transactions = []
         self.chain = []
         self.nodes = set()
         self.wallets = [w1, w2, w3, w4, w5]
@@ -39,11 +40,20 @@ class Blockchain:
 
         guess = f'{last_proof}{proof}{last_hash}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
-        if guess_hash[:7] == "0000000":
+        if guess_hash[:4] == "0000":
             print(guess_hash)
             return True
         else:
             return False
+
+    def verify_transactions(self):
+        """
+        Verifies transactions in current_transactions list
+        :return: appends all verified transactions to verified_transactions list
+        """
+        for i in range(0, len(self.current_transactions)):
+            if self.current_transactions[i].verify_transaction():
+                self.verified_transactions.append(self.current_transactions[i])
 
     def valid_chain(self):
         """
@@ -80,18 +90,17 @@ class Blockchain:
         return True
 
     def new_transaction(self, sender_wallet, recipient_wallet, amount):
-        transaction = Transaction(sender_wallet.id, recipient_wallet.id, amount)
-        transaction.sign_transaction(sender_wallet.private_key)
-        print(transaction.to_dict())
+        transaction = Transaction(sender_wallet, recipient_wallet, amount)
+        transaction.sign_transaction()
         self.current_transactions.append(transaction.to_dict())
         return transaction
 
-    def check_wallet(self, wallet_id):
+    def get_wallet(self, wallet_id):
         for w in self.wallets:
             if w.id == wallet_id:
-                return True
-            else:
-                return False
+                return w
+
+
 
     def new_block(self, proof, previous_hash):
         """
@@ -165,8 +174,19 @@ blockchain = Blockchain()
 blockchain.new_transaction(w1, w2, 5)
 blockchain.new_transaction(w3, w4, 15)
 blockchain.new_transaction(w5, w1, 11)
-print("Current transactions are : \n", blockchain.current_transactions , "\n")
-print("Current chain : \n", blockchain.chain, "\n")
+print("Current transactions are : \n")
+for i in range(0, len(blockchain.current_transactions)):
+    print(blockchain.current_transactions[i], "\n")
+print("Current chain : \n")
+for x in range(0, len(blockchain.chain)):
+    print(blockchain.chain[x], "\n")
 blockchain.mine()
-print("chain after mining : \n", blockchain.chain, "\n")
+print("chain after mining : \n")
+for y in range(0, len(blockchain.chain)):
+    print(blockchain.chain[y])
 blockchain.valid_chain()
+
+# print("Verifying transactions : ")
+# blockchain.verify_transactions()
+# for x in range(0, len(blockchain.verified_transactions)):
+#     print(blockchain.verified_transactions[x])
