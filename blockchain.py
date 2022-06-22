@@ -1,7 +1,7 @@
 import hashlib
-import json
-from crypto import hash, sign
+
 from block import Block
+from crypto import hash
 from transaction import Transaction
 from wallet import Wallet
 
@@ -21,6 +21,7 @@ class Blockchain:
         self.chain = []
         self.nodes = set()
         self.wallets = [w1, w2, w3, w4, w5]
+        self.wallets_ids = [w1.id, w2.id, w3.id, w4.id, w5.id]
 
         self.new_block(previous_hash='1', proof=100)
 
@@ -100,8 +101,6 @@ class Blockchain:
             if w.id == wallet_id:
                 return w
 
-
-
     def new_block(self, proof, previous_hash):
         """
         :param proof: The proof given by the Proof of Work algorithm
@@ -149,6 +148,7 @@ class Blockchain:
             # 'signature': block['signature']
         }
         print(response)
+        return response
 
     def proof_of_work(self, last_block):
         """
@@ -174,17 +174,17 @@ blockchain = Blockchain()
 blockchain.new_transaction(w1, w2, 5)
 blockchain.new_transaction(w3, w4, 15)
 blockchain.new_transaction(w5, w1, 11)
-print("Current transactions are : \n")
-for i in range(0, len(blockchain.current_transactions)):
-    print(blockchain.current_transactions[i], "\n")
-print("Current chain : \n")
-for x in range(0, len(blockchain.chain)):
-    print(blockchain.chain[x], "\n")
-blockchain.mine()
-print("chain after mining : \n")
-for y in range(0, len(blockchain.chain)):
-    print(blockchain.chain[y])
-blockchain.valid_chain()
+# print("Current transactions are : \n")
+# for i in range(0, len(blockchain.current_transactions)):
+# print(blockchain.current_transactions[i], "\n")
+# print("Current chain : \n")
+# for x in range(0, len(blockchain.chain)):
+# print(blockchain.chain[x], "\n")
+# blockchain.mine()
+# print("chain after mining : \n")
+# for y in range(0, len(blockchain.chain)):
+# print(blockchain.chain[y])
+# blockchain.valid_chain()
 
 # print("Verifying transactions : ")
 # blockchain.verify_transactions()

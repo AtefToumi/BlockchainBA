@@ -2,6 +2,7 @@ import json
 from uuid import uuid4
 
 from flask import Flask, jsonify, request
+from wallet import Wallet
 
 # Instantiate the Node
 from blockchain import Blockchain
@@ -50,17 +51,35 @@ def all_transactions():
 
 @app.route('/mine', methods=['GET'])
 def mine():
+    response = blockchain.mine()
+    return jsonify(response), 200
 
-
-@app.route('/users/new_client', methods=['POST'])
-def new_client():
-    pass
+# @app.route('/users/new_client', methods=['POST'])
+# def new_client():
+    # pass
 
 
 @app.route('/wallets', methods=['GET'])
 def get_wallets():
-    response = {'Wallets available are : ': json.dumps(blockchain.wallets)}
+    response = {'Wallets available are : ': json.dumps(blockchain.wallets_ids)}
     return jsonify(response), 200
+
+@app.route('/wallets/add', methods=['POST'])
+def add_wallet():
+    values = request.get_json()
+    required = ['wallet_id']
+    if not all(k in values for k in required):
+        return 'Missing values', 400
+
+    new_wallet = Wallet(values['wallet_id'])
+    blockchain.wallets.append(new_wallet)
+    blockchain.wallets_ids.append(new_wallet.id)
+
+    response = {'New wallet has been added with ID ': json.dumps(new_wallet.id)}
+    return response, 200
+
+# @app.route('/chain', methods=['GET'])
+# def
 
 
 if __name__ == '__main__':

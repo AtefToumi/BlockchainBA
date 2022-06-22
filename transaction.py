@@ -1,6 +1,7 @@
 import collections
 
 from crypto import hash, sign,verify_signature
+from wallet import Wallet
 
 
 class Transaction:
@@ -18,8 +19,10 @@ class Transaction:
         hashed_transaction = hash(self.to_dict_sign())
         try:
             verify_signature(self.sender_wallet.public_key, hashed_transaction, self.signature)
+            print("Signature is valid")
             return True
         except(ValueError, TypeError):
+            print("Signature is invalid")
             return False
 
 
@@ -36,3 +39,13 @@ class Transaction:
             "recipient_wallet_ID": self.recipient_wallet.id,
             "amount": self.amount
         })
+
+
+
+
+# w1 = Wallet(1)
+# w2 = Wallet(2)
+# t = Transaction(w1, w2, 20)
+# t.sign_transaction()
+# t.verify_transaction()
+# print(t.to_dict())

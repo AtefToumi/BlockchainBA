@@ -39,4 +39,4 @@ class Wallet:
 # except(ValueError,TypeError):
 #     print("The signature is NOT valid")
 
-w1 = Wallet(1)
+# w1 = Wallet(1)
