@@ -1,8 +1,9 @@
 import hashlib
-
+import requests
 from block import Block
 from crypto import hash
 from transaction import Transaction
+from urllib.parse import urlparse
 from wallet import Wallet
 
 w1 = Wallet(1)
@@ -46,6 +47,54 @@ class Blockchain:
             return True
         else:
             return False
+
+    def register_node(self, address):
+        """
+        Add a new node to the list of nodes
+        :param address: Address of node. Eg. 'http://192.168.0.5:5000'
+        """
+
+        parsed_url = urlparse(address)
+        if parsed_url.netloc:
+            self.nodes.add(parsed_url.netloc)
+        elif parsed_url.path:
+            # Accepts an URL without scheme like '192.168.0.5:5000'.
+            self.nodes.add(parsed_url.path)
+        else:
+            raise ValueError('Invalid URL')
+
+    def resolve_conflicts(self):
+        """
+        This is our consensus algorithm, it resolves conflicts
+        by replacing our chain with the longest one in the network.
+        :return: True if our chain was replaced, False if not
+        """
+
+        neighbours = self.nodes
+        new_chain = None
+
+        # We're only looking for chains longer than ours
+        max_length = len(self.chain)
+
+        # Grab and verify the chains from all the nodes in our network
+        for node in neighbours:
+            response = requests.get(f'http://{node}/chain')
+
+            if response.status_code == 200:
+                length = response.json()['length']
+                chain = response.json()['chain']
+
+                # Check if the length is longer and the chain is valid
+                if length > max_length and self.valid_chain():
+                    max_length = length
+                    new_chain = chain
+
+        # Replace our chain if we discovered a new, valid chain longer than ours
+        if new_chain:
+            self.chain = new_chain
+            return True
+
+        return False
 
     def verify_transactions(self):
         """
@@ -128,12 +177,7 @@ class Blockchain:
         proof = self.proof_of_work(last_block)
 
         # We must receive a reward for finding the proof.
-        # The sender is "0" to signify that this node has mined a new coin.
-        blockchain.new_transaction(
-            reward_wallet,
-            node_wallet,
-            1,
-        )
+        self.new_transaction(reward_wallet, node_wallet, 1)
 
         # Forge the new Block by adding it to the chain
         previous_hash = hash(last_block)
