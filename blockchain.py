@@ -13,6 +13,8 @@ w4 = Wallet(4)
 w5 = Wallet(5)
 node_wallet = Wallet(6)
 reward_wallet = Wallet(999)
+previous_hash = '1'
+proof=100
 
 
 class Blockchain:
@@ -23,8 +25,8 @@ class Blockchain:
         self.nodes = set()
         self.wallets = [w1, w2, w3, w4, w5]
         self.wallets_ids = [w1.id, w2.id, w3.id, w4.id, w5.id]
-
-        self.new_block(previous_hash='1', proof=100)
+        
+        self.new_block(previous_hash, proof, reward_wallet)
 
     @property
     def last_block(self):
@@ -150,7 +152,7 @@ class Blockchain:
             if w.id == wallet_id:
                 return w
 
-    def new_block(self, proof, previous_hash):
+    def new_block(self, proof, previous_hash, node):
         """
         :param proof: The proof given by the Proof of Work algorithm
         :param previous_hash: Hash of previous Block
@@ -158,6 +160,7 @@ class Blockchain:
         :return:
         """
         block = Block(len(self.chain) + 1, self.current_transactions, proof, previous_hash or hash(self.chain[-1]))
+        block.sign_block(node)
         # block = {
         #     'index': len(self.chain) + 1,
         #     'timestamp': time(),
@@ -168,10 +171,10 @@ class Blockchain:
         # Reset the current list of transactions
         self.current_transactions = []
 
-        self.chain.append(block.to_dict())
+        self.chain.append(block.to_dict_signed())
         return block
 
-    def mine(self):
+    def mine(self, node):
         # We run the proof of work algorithm to get the next proof...
         last_block = self.last_block
         proof = self.proof_of_work(last_block)
@@ -181,7 +184,7 @@ class Blockchain:
 
         # Forge the new Block by adding it to the chain
         previous_hash = hash(last_block)
-        block = self.new_block(proof, previous_hash.hexdigest())
+        block = self.new_block(proof, previous_hash.hexdigest(),node)
 
         response = {
             'message': "New Block Forged",
@@ -189,7 +192,7 @@ class Blockchain:
             'transactions': block.transactions,
             'proof': block.proof,
             'previous_hash': block.previous_hash,
-            # 'signature': block['signature']
+            'signature': block.signature.hex()
         }
         print(response)
         return response

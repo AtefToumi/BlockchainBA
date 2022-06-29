@@ -1,4 +1,5 @@
 import collections
+from crypto import sign, hash
 from time import time
 
 
@@ -18,3 +19,18 @@ class Block:
             "proof": self.proof,
             "previous_hash": self.previous_hash,
         })
+
+    def to_dict_signed(self):
+        return collections.OrderedDict({
+            "index": self.index,
+            "timestamp": self.timestamp,
+            "transactions": self.transactions,
+            "proof": self.proof,
+            "previous_hash": self.previous_hash,
+            "signature": self.signature.hex()
+        })
+
+    def sign_block(self, node):
+        hashed_transaction = hash(self.to_dict())
+        signature = sign(node.private_key, hashed_transaction)
+        setattr(self, 'signature', signature)

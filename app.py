@@ -3,17 +3,18 @@ from uuid import uuid4
 
 from flask import Flask, jsonify, request
 from wallet import Wallet
+from node import Node
+
+
 
 # Instantiate the Node
 from blockchain import Blockchain
 
 app = Flask(__name__)
 
-# Generate a globally unique address for this node
-node_identifier = str(uuid4()).replace('-', '')
-
 # Instantiate the Blockchain
 blockchain = Blockchain()
+current_node = Node()
 
 
 def toJSON():
@@ -51,7 +52,7 @@ def all_transactions():
 
 @app.route('/mine', methods=['GET'])
 def mine():
-    response = blockchain.mine()
+    response = blockchain.mine(current_node)
     return jsonify(response), 200
 
 # @app.route('/users/new_client', methods=['POST'])
@@ -119,6 +120,13 @@ def consensus():
         }
 
     return jsonify(response), 200
+
+@app.route('/node', methods=['GET'])
+def node():
+    response = {
+        "node" : json.dumps(current_node.to_dict())
+    }
+    return response, 201
 
 
 if __name__ == '__main__':

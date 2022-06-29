@@ -4,7 +4,6 @@ import json
 from Crypto.Signature import pkcs1_15
 from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA384
-from block import Block
 
 
 def create_key():
