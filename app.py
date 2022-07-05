@@ -1,20 +1,19 @@
 import json
-from uuid import uuid4
-
-from flask import Flask, jsonify, request
-from wallet import Wallet
-from node import Node
-
-
-
 # Instantiate the Node
 from blockchain import Blockchain
+from transaction import verify_transaction
+from flask import Flask, jsonify, request
+from node import Node
+from uuid import uuid4
+from wallet import Wallet
 
 app = Flask(__name__)
 
 # Instantiate the Blockchain
 blockchain = Blockchain()
 current_node = Node()
+
+messages = []
 
 
 def toJSON():
@@ -43,6 +42,26 @@ def new_transaction():
     return jsonify(response), 201
 
 
+@app.route('/broadcast', methods=['POST'])
+def broadcast():
+    payload = request.get_json()
+    transaction=json.loads(payload)
+    signature = transaction['signature']
+    sender_wallet_public_key = bytes.fromhex(transaction['sender_wallet_public_key'])
+    del transaction['signature']
+    print("Transaction is : ",transaction)
+    print("Sender's wallet ID is : ",transaction["sender_wallet_ID"])
+    print("Signature is : ", signature)
+    print("Signature reconverted is : ", bytes.fromhex(signature))
+    signature_bytes= bytes.fromhex(signature)
+    sender_wallet = blockchain.get_wallet(transaction['sender_wallet_ID'])
+    if verify_transaction(transaction, sender_wallet_public_key, signature_bytes):
+        blockchain.current_transactions.append(transaction)
+        return jsonify({'current transactions': blockchain.current_transactions}), 201
+    else :
+        return jsonify({'message': 'signature is invalid, transaction is not accepted'})
+
+
 @app.route('/transactions/all', methods=['GET'])
 def all_transactions():
     response = {
@@ -50,20 +69,23 @@ def all_transactions():
     }
     return jsonify(response), 200
 
+
 @app.route('/mine', methods=['GET'])
 def mine():
     response = blockchain.mine(current_node)
     return jsonify(response), 200
 
+
 # @app.route('/users/new_client', methods=['POST'])
 # def new_client():
-    # pass
+# pass
 
 
 @app.route('/wallets', methods=['GET'])
 def get_wallets():
     response = {'Wallets available are : ': json.dumps(blockchain.wallets_ids)}
     return jsonify(response), 200
+
 
 @app.route('/wallets/add', methods=['POST'])
 def add_wallet():
@@ -79,13 +101,15 @@ def add_wallet():
     response = {'New wallet has been added with ID ': json.dumps(new_wallet.id)}
     return response, 200
 
+
 @app.route('/chain', methods=['GET'])
 def full_chain():
     response = {
-        'chain' : blockchain.chain,
-        'length' : len(blockchain.chain)
+        'chain': blockchain.chain,
+        'length': len(blockchain.chain)
     }
     return jsonify(response), 200
+
 
 @app.route('/nodes/register', methods=['POST'])
 def register_nodes():
@@ -104,6 +128,7 @@ def register_nodes():
     }
     return jsonify(response), 201
 
+
 @app.route('/nodes/resolve', methods=['GET'])
 def consensus():
     replaced = blockchain.resolve_conflicts()
@@ -121,10 +146,11 @@ def consensus():
 
     return jsonify(response), 200
 
+
 @app.route('/node', methods=['GET'])
 def node():
     response = {
-        "node" : json.dumps(current_node.to_dict())
+        "node": json.dumps(current_node.to_dict())
     }
     return response, 201
 

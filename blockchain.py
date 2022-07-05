@@ -5,6 +5,8 @@ from crypto import hash
 from transaction import Transaction
 from urllib.parse import urlparse
 from wallet import Wallet
+import json
+
 
 w1 = Wallet(1)
 w2 = Wallet(2)
@@ -144,7 +146,16 @@ class Blockchain:
     def new_transaction(self, sender_wallet, recipient_wallet, amount):
         transaction = Transaction(sender_wallet, recipient_wallet, amount)
         transaction.sign_transaction()
+
+
         self.current_transactions.append(transaction.to_dict())
+        print(transaction.to_dict())
+
+        neighbours = self.nodes
+        #Broadcasting the transaction to all nodes
+        for node in neighbours :
+            r = requests.post(f"http://{node}/broadcast", json = json.dumps(transaction.to_dict(), indent=4))
+            print(r.text)
         return transaction
 
     def get_wallet(self, wallet_id):
@@ -217,10 +228,10 @@ class Blockchain:
         return proof
 
 
-blockchain = Blockchain()
-blockchain.new_transaction(w1, w2, 5)
-blockchain.new_transaction(w3, w4, 15)
-blockchain.new_transaction(w5, w1, 11)
+# blockchain = Blockchain()
+# blockchain.new_transaction(w1, w2, 5)
+# blockchain.new_transaction(w3, w4, 15)
+# blockchain.new_transaction(w5, w1, 11)
 # print("Current transactions are : \n")
 # for i in range(0, len(blockchain.current_transactions)):
 # print(blockchain.current_transactions[i], "\n")

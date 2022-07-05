@@ -23,7 +23,8 @@ def sign(private_key, hashed):
     return signer.sign(hashed)
 
 def verify_signature(public_key, hashed , signature):
-    verifier = pkcs1_15.new(public_key)
+    key = RSA.import_key(public_key)
+    verifier = pkcs1_15.new(key)
     return verifier.verify(hashed, signature)
 
 

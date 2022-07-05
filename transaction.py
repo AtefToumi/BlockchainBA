@@ -1,47 +1,51 @@
 import collections
 
-from crypto import hash, sign,verify_signature
+from crypto import hash, sign, verify_signature
 from wallet import Wallet
 
 
 class Transaction:
     def __init__(self, sender_wallet, recipient_wallet, amount):
         self.sender_wallet = sender_wallet
+        self.sender_wallet_public_key = sender_wallet.public_key.exportKey().hex()
         self.recipient_wallet = recipient_wallet
         self.amount = amount
 
     def sign_transaction(self):
+        print(self.to_dict_sign())
         hashed_transaction = hash(self.to_dict_sign())
+        print("hashed transaction for signing : ", hashed_transaction.hexdigest())
         signature = sign(self.sender_wallet.private_key, hashed_transaction)
         setattr(self, 'signature', signature)
 
-    def verify_transaction(self):
-        hashed_transaction = hash(self.to_dict_sign())
-        try:
-            verify_signature(self.sender_wallet.public_key, hashed_transaction, self.signature)
-            print("Signature is valid")
-            return True
-        except(ValueError, TypeError):
-            print("Signature is invalid")
-            return False
-
-
     def to_dict(self):
-        return collections.OrderedDict({
+        return {
             "sender_wallet_ID": self.sender_wallet.id,
+            "sender_wallet_public_key" : self.sender_wallet_public_key,
             "recipient_wallet_ID": self.recipient_wallet.id,
             "amount": self.amount,
             "signature": self.signature.hex()
-        })
+        }
+
     def to_dict_sign(self):
-        return collections.OrderedDict({
+        return {
             "sender_wallet_ID": self.sender_wallet.id,
+            "sender_wallet_public_key": self.sender_wallet_public_key,
             "recipient_wallet_ID": self.recipient_wallet.id,
             "amount": self.amount
-        })
+        }
 
 
-
+def verify_transaction(transaction, sender_wallet_public_key, signature ):
+    hashed_transaction = hash(transaction)
+    print("hashed transaction for verifying : ", hashed_transaction.hexdigest())
+    try:
+        verify_signature(sender_wallet_public_key, hashed_transaction, signature)
+        print("Signature is valid")
+        return True
+    except(ValueError, TypeError):
+        print("Signature is invalid")
+        return False
 
 # w1 = Wallet(1)
 # w2 = Wallet(2)
