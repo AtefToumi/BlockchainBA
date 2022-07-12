@@ -6,15 +6,36 @@ from flask import Flask, jsonify, request
 from node import Node
 from uuid import uuid4
 from wallet import Wallet
+import random
+import time
+from threading import Thread
 
 app = Flask(__name__)
 
 # Instantiate the Blockchain
 blockchain = Blockchain()
+# blockchain.register_node("http://127.0.0.1:5000")
+# blockchain.register_node("http://127.0.0.1:5001")
 current_node = Node()
 
-messages = []
+def generate_transactions():
+    while True :
+        print("thread 1")
+        blockchain.new_transaction(blockchain.wallets[1], blockchain.wallets[2], random.randrange(1,20) )
+        time.sleep(5)
 
+def generate_transactions_2():
+    while True :
+        print("thread 1")
+        blockchain.new_transaction(blockchain.wallets[2], blockchain.wallets[3], random.randrange(1,20) )
+        time.sleep(5)
+
+thread_1 = Thread(target = generate_transactions)
+thread_2 = Thread(target = generate_transactions_2)
+
+
+# thread_1.start()
+# thread_2.start()
 
 def toJSON():
     return json.dumps(default=lambda o: o.__dict__, sort_keys=True, indent=4)
@@ -43,7 +64,7 @@ def new_transaction():
 
 
 @app.route('/broadcast', methods=['POST'])
-def broadcast():
+def broadcast_transaction():
     payload = request.get_json()
     transaction=json.loads(payload)
     signature = transaction['signature']
@@ -60,6 +81,12 @@ def broadcast():
         return jsonify({'current transactions': blockchain.current_transactions}), 201
     else :
         return jsonify({'message': 'signature is invalid, transaction is not accepted'})
+
+@app.route('/broadcast/block', methods=['POST'])
+def broadcast_block():
+    payload = request.get_json()
+
+    return jsonify({"block is : ": payload})
 
 
 @app.route('/transactions/all', methods=['GET'])
@@ -153,7 +180,12 @@ def node():
         "node": json.dumps(current_node.to_dict())
     }
     return response, 201
-
+@app.route('/nodes', methods=['GET'])
+def get_nodes():
+    response = {
+        "current nodes" : list(blockchain.nodes)
+    }
+    return response, 201
 
 if __name__ == '__main__':
     from argparse import ArgumentParser

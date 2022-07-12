@@ -121,7 +121,7 @@ class Blockchain:
 
         while current_index < len(self.chain):
             block = self.chain[current_index]
-            # print(f'{last_block}')
+            print(f'{last_block}')
             # print(f'{block}')
             # print("\n-----------\n")
             # Check that the hash of the block is correct
@@ -163,6 +163,7 @@ class Blockchain:
             if w.id == wallet_id:
                 return w
 
+
     def new_block(self, proof, previous_hash, node):
         """
         :param proof: The proof given by the Proof of Work algorithm
@@ -172,6 +173,12 @@ class Blockchain:
         """
         block = Block(len(self.chain) + 1, self.current_transactions, proof, previous_hash or hash(self.chain[-1]))
         block.sign_block(node)
+        neighbours = self.nodes
+        # Broadcasting the block to all nodes
+        for node in neighbours:
+            r = requests.post(f"http://{node}/broadcast/block", json=json.dumps(block.to_dict_signed(), indent=4))
+            print(r.text)
+
         # block = {
         #     'index': len(self.chain) + 1,
         #     'timestamp': time(),

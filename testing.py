@@ -1,13 +1,22 @@
-from Crypto.Signature import pkcs1_15
+import random
+import time
+from threading import Thread
 
-from Crypto.Hash import SHA256
+def generate_transactions():
+    while True:
+        print(random.randrange(1,20))
+        time.sleep(1)
 
-from Crypto.PublicKey import RSA
 
-message = b'To be signed'
+def generate_transactions_2():
+    while True:
+        print(random.randrange(20,40))
+        time.sleep(1)
 
-key = RSA.import_key(open('private_key.der').read())
+thread_1 = Thread(target = generate_transactions)
+thread_2 = Thread(target = generate_transactions_2)
 
-h = SHA256.new(message)
+thread_1.start()
+thread_2.start()
 
-signature = pkcs1_15.new(key).sign(h)
+
