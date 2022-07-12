@@ -143,7 +143,7 @@ class Blockchain:
         print("\nCHAIN IS VALID\n")
         return True
 
-    def new_transaction(self, sender_wallet, recipient_wallet, amount):
+    def new_transaction(self, sender_wallet, recipient_wallet, amount, broadcast):
         transaction = Transaction(sender_wallet, recipient_wallet, amount)
         transaction.sign_transaction()
 
@@ -153,9 +153,10 @@ class Blockchain:
 
         neighbours = self.nodes
         #Broadcasting the transaction to all nodes
-        for node in neighbours :
-            r = requests.post(f"http://{node}/broadcast", json = json.dumps(transaction.to_dict(), indent=4))
-            print(r.text)
+        if broadcast :
+            for node in neighbours :
+                r = requests.post(f"http://{node}/broadcast", json = json.dumps(transaction.to_dict(), indent=4))
+                print(r.text)
         return transaction
 
     def get_wallet(self, wallet_id):
@@ -198,7 +199,8 @@ class Blockchain:
         proof = self.proof_of_work(last_block)
 
         # We must receive a reward for finding the proof.
-        self.new_transaction(reward_wallet, node_wallet, 1)
+        broadcast = False
+        self.new_transaction(reward_wallet, node_wallet, 1, broadcast)
 
         # Forge the new Block by adding it to the chain
         previous_hash = hash(last_block)

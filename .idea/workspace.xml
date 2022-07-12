@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="532d2ac7-99a5-4550-8f29-44c6ba0c72a0" name="Changes" comment="added requirements file">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="532d2ac7-99a5-4550-8f29-44c6ba0c72a0" name="Changes" comment="added threading for generating transactions">
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/block.py" beforeDir="false" afterPath="$PROJECT_DIR$/block.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/blockchain.py" beforeDir="false" afterPath="$PROJECT_DIR$/blockchain.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/testing.py" beforeDir="false" afterPath="$PROJECT_DIR$/testing.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -163,7 +160,7 @@
       <workItem from="1657544035341" duration="5618000" />
       <workItem from="1657576516245" duration="1173000" />
       <workItem from="1657618567302" duration="3901000" />
-      <workItem from="1657628440108" duration="4833000" />
+      <workItem from="1657628440108" duration="5487000" />
     </task>
     <task id="LOCAL-00001" summary="Final Blockchain">
       <created>1653402195830</created>
@@ -221,7 +218,14 @@
       <option name="project" value="LOCAL" />
       <updated>1657547459176</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="added threading for generating transactions">
+      <created>1657634293920</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1657634293920</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -246,7 +250,8 @@
     <MESSAGE value="added signatures to blocks" />
     <MESSAGE value="broadcast transactions with public key and verifying" />
     <MESSAGE value="added requirements file" />
-    <option name="LAST_COMMIT_MESSAGE" value="added requirements file" />
+    <MESSAGE value="added threading for generating transactions" />
+    <option name="LAST_COMMIT_MESSAGE" value="added threading for generating transactions" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/BlockchainBA$main.coverage" NAME="main Coverage Results" MODIFIED="1654359469066" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

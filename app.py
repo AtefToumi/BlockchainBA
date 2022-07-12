@@ -52,8 +52,9 @@ def new_transaction():
     sender_wallet = blockchain.get_wallet(values['sender_wallet_id'])
     recipient_wallet = blockchain.get_wallet(values['recipient_wallet_id'])
     # Create a new Transaction
+    broadcast = True
     transaction = blockchain.new_transaction(sender_wallet, recipient_wallet,
-                                             values['amount'])
+                                             values['amount'], broadcast)
 
     response = {
         'message': f'Transaction will be added to the next Block',
