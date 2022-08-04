@@ -1,14 +1,14 @@
 import json
-# Instantiate the Node
-from blockchain import Blockchain
-from transaction import verify_transaction
-from flask import Flask, jsonify, request
-from node import Node
-from uuid import uuid4
-from wallet import Wallet
 import random
 import time
+# Instantiate the Node
+from blockchain import Blockchain
+from flask import Flask, jsonify, request
+from node import Node
 from threading import Thread
+from transaction import verify_transaction
+from uuid import uuid4
+from wallet import Wallet
 
 app = Flask(__name__)
 
@@ -17,28 +17,28 @@ blockchain = Blockchain()
 # blockchain.register_node("http://127.0.0.1:5000")
 # blockchain.register_node("http://127.0.0.1:5001")
 current_node = Node()
-
-def generate_transactions():
-    while True :
-        print("thread 1")
-        blockchain.new_transaction(blockchain.wallets[1], blockchain.wallets[2], random.randrange(1,20) )
-        time.sleep(5)
-
-def generate_transactions_2():
-    while True :
-        print("thread 1")
-        blockchain.new_transaction(blockchain.wallets[2], blockchain.wallets[3], random.randrange(1,20) )
-        time.sleep(5)
-
-thread_1 = Thread(target = generate_transactions)
-thread_2 = Thread(target = generate_transactions_2)
+gen_wallet = Wallet(666)
 
 
-# thread_1.start()
-# thread_2.start()
+def generate_transactions(node_id):
+    while True:
+        wallet1 = random.randrange(1, 5)
+        wallet2 = random.randrange(1, 5)
+        amount = random.randrange(1, 20)
+        blockchain.new_transaction(blockchain.wallets[wallet1], blockchain.wallets[wallet2], amount, True)
+        print(
+            f'node {node_id} created a Transaction from Wallet {wallet1} to Wallet {wallet2} with {amount} COINS transfered')
+        sleep_time = random.randrange(10, 30)
+        print(f'Next Transaction in {sleep_time} seconds')
+        time.sleep(sleep_time)
 
-def toJSON():
-    return json.dumps(default=lambda o: o.__dict__, sort_keys=True, indent=4)
+
+def generate_mining():
+    while True:
+        sleep_time = (random.randrange(50, 100))
+        print(f"Mining in {sleep_time} seconds")
+        time.sleep(sleep_time)
+        blockchain.mine(current_node)
 
 
 @app.route('/transactions/new', methods=['POST'])
@@ -64,30 +64,75 @@ def new_transaction():
     return jsonify(response), 201
 
 
+@app.route('/start/gen_transactions', methods=['POST'])
+def gen_transactions():
+    values = request.get_json()
+    node_id = values['node_id']
+    required = ['node_id']
+    if not all(k in values for k in required):
+        return 'Missing values', 400
+    thread = Thread(target=generate_transactions, args=(node_id,))
+    thread.start()
+    response = {
+        "message": f'thread {node_id} started successfully'
+    }
+    return jsonify(response), 201
+
+
+@app.route('/stop/gen_transactions', methods=['GET'])
+def stop_thread():
+    pass
+
+
+@app.route('/start/gen_mine', methods=['GET'])
+def start_mine():
+    thread = Thread(target=generate_mining)
+    thread.start()
+
+    return jsonify({"message": "Thread started successfully"}), 201
+
+
 @app.route('/broadcast', methods=['POST'])
 def broadcast_transaction():
     payload = request.get_json()
-    transaction=json.loads(payload)
+    transaction = json.loads(payload)
     signature = transaction['signature']
     sender_wallet_public_key = bytes.fromhex(transaction['sender_wallet_public_key'])
     del transaction['signature']
-    print("Transaction is : ",transaction)
-    print("Sender's wallet ID is : ",transaction["sender_wallet_ID"])
-    print("Signature is : ", signature)
-    print("Signature reconverted is : ", bytes.fromhex(signature))
-    signature_bytes= bytes.fromhex(signature)
+    print("Transaction received : ", transaction)
+    # print("Sender's wallet ID is : ", transaction["sender_wallet_ID"])
+    # print("Signature is : ", signature)
+    # print("Signature reconverted is : ", bytes.fromhex(signature))
+    signature_bytes = bytes.fromhex(signature)
     sender_wallet = blockchain.get_wallet(transaction['sender_wallet_ID'])
     if verify_transaction(transaction, sender_wallet_public_key, signature_bytes):
         blockchain.current_transactions.append(transaction)
-        return jsonify({'current transactions': blockchain.current_transactions}), 201
-    else :
+        return jsonify({'message': "Transaction verified and will be added to the next block"}), 201
+    else:
         return jsonify({'message': 'signature is invalid, transaction is not accepted'})
+
 
 @app.route('/broadcast/block', methods=['POST'])
 def broadcast_block():
     payload = request.get_json()
+    print(payload)
+    test_chain = blockchain
+    test_chain.chain.append(json.loads(payload))
+    if test_chain.valid_chain():
+        print("CHAIN IS VALIIIIIID")
+    else:
+        print("CHAIN IS NOOOOOOOOT VALIIIIID")
+    response = {'message': "block has been sent"}
+    return jsonify(response), 201
 
-    return jsonify({"block is : ": payload})
+
+@app.route('/genesis', methods=['GET'])
+def genesis_block():
+    gen_block = blockchain.new_block('1', 100, gen_wallet)
+    response = {
+        'genesis block ': json.dumps(gen_block.to_dict_signed())
+    }
+    return jsonify(response), 201
 
 
 @app.route('/transactions/all', methods=['GET'])
@@ -181,12 +226,15 @@ def node():
         "node": json.dumps(current_node.to_dict())
     }
     return response, 201
+
+
 @app.route('/nodes', methods=['GET'])
 def get_nodes():
     response = {
-        "current nodes" : list(blockchain.nodes)
+        "current nodes": list(blockchain.nodes)
     }
     return response, 201
+
 
 if __name__ == '__main__':
     from argparse import ArgumentParser

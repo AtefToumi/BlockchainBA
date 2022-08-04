@@ -12,9 +12,9 @@ class Transaction:
         self.amount = amount
 
     def sign_transaction(self):
-        print(self.to_dict_sign())
+        # print(self.to_dict_sign())
         hashed_transaction = hash(self.to_dict_sign())
-        print("hashed transaction for signing : ", hashed_transaction.hexdigest())
+        # print("hashed transaction for signing : ", hashed_transaction.hexdigest())
         signature = sign(self.sender_wallet.private_key, hashed_transaction)
         setattr(self, 'signature', signature)
 
@@ -35,10 +35,16 @@ class Transaction:
             "amount": self.amount
         }
 
+    def to_print(self):
+        return {
+            "sender_wallet_ID" : self.sender_wallet.id,
+            "recipient_wallet_ID": self.recipient_wallet.id,
+            "amount": self.amount
+        }
 
 def verify_transaction(transaction, sender_wallet_public_key, signature ):
     hashed_transaction = hash(transaction)
-    print("hashed transaction for verifying : ", hashed_transaction.hexdigest())
+    # print("hashed transaction for verifying : ", hashed_transaction.hexdigest())
     try:
         verify_signature(sender_wallet_public_key, hashed_transaction, signature)
         print("Signature is valid")

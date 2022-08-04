@@ -28,7 +28,7 @@ class Blockchain:
         self.wallets = [w1, w2, w3, w4, w5]
         self.wallets_ids = [w1.id, w2.id, w3.id, w4.id, w5.id]
         
-        self.new_block(previous_hash, proof, reward_wallet)
+        # self.new_block(previous_hash, proof, reward_wallet)
 
     @property
     def last_block(self):
@@ -47,7 +47,7 @@ class Blockchain:
         guess = f'{last_proof}{proof}{last_hash}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
         if guess_hash[:4] == "0000":
-            print(guess_hash)
+            # print(guess)
             return True
         else:
             return False
@@ -149,7 +149,7 @@ class Blockchain:
 
 
         self.current_transactions.append(transaction.to_dict())
-        print(transaction.to_dict())
+        # print(transaction.to_dict())
 
         neighbours = self.nodes
         #Broadcasting the transaction to all nodes
@@ -212,7 +212,7 @@ class Blockchain:
             'transactions': block.transactions,
             'proof': block.proof,
             'previous_hash': block.previous_hash,
-            'signature': block.signature.hex()
+            # 'signature': block.signature.hex()
         }
         print(response)
         return response
