@@ -1,12 +1,11 @@
 import hashlib
+import json
 import requests
 from block import Block
 from crypto import hash
 from transaction import Transaction
 from urllib.parse import urlparse
 from wallet import Wallet
-import json
-
 
 w1 = Wallet(1)
 w2 = Wallet(2)
@@ -16,7 +15,7 @@ w5 = Wallet(5)
 node_wallet = Wallet(6)
 reward_wallet = Wallet(999)
 previous_hash = '1'
-proof=100
+proof = 100
 
 
 class Blockchain:
@@ -27,30 +26,12 @@ class Blockchain:
         self.nodes = set()
         self.wallets = [w1, w2, w3, w4, w5]
         self.wallets_ids = [w1.id, w2.id, w3.id, w4.id, w5.id]
-        
+
         # self.new_block(previous_hash, proof, reward_wallet)
 
     @property
     def last_block(self):
         return self.chain[-1]
-
-    @staticmethod
-    def valid_proof(last_proof, proof, last_hash):
-        """
-        Validates the Proof
-        :param last_proof: <int> Previous Proof
-        :param proof: <int> Current Proof
-        :param last_hash: <str> The hash of the Previous Block
-        :return: <bool> True if correct, False if not.
-        """
-
-        guess = f'{last_proof}{proof}{last_hash}'.encode()
-        guess_hash = hashlib.sha256(guess).hexdigest()
-        if guess_hash[:4] == "0000":
-            # print(guess)
-            return True
-        else:
-            return False
 
     def register_node(self, address):
         """
@@ -147,15 +128,14 @@ class Blockchain:
         transaction = Transaction(sender_wallet, recipient_wallet, amount)
         transaction.sign_transaction()
 
-
         self.current_transactions.append(transaction.to_dict())
         # print(transaction.to_dict())
 
         neighbours = self.nodes
-        #Broadcasting the transaction to all nodes
-        if broadcast :
-            for node in neighbours :
-                r = requests.post(f"http://{node}/broadcast", json = json.dumps(transaction.to_dict(), indent=4))
+        # Broadcasting the transaction to all nodes
+        if broadcast:
+            for node in neighbours:
+                r = requests.post(f"http://{node}/broadcast", json=json.dumps(transaction.to_dict(), indent=4))
                 print(r.text)
         return transaction
 
@@ -163,7 +143,6 @@ class Blockchain:
         for w in self.wallets:
             if w.id == wallet_id:
                 return w
-
 
     def new_block(self, proof, previous_hash, node):
         """
@@ -204,7 +183,7 @@ class Blockchain:
 
         # Forge the new Block by adding it to the chain
         previous_hash = hash(last_block)
-        block = self.new_block(proof, previous_hash.hexdigest(),node)
+        block = self.new_block(proof, previous_hash.hexdigest(), node)
 
         response = {
             'message': "New Block Forged",
@@ -218,15 +197,6 @@ class Blockchain:
         return response
 
     def proof_of_work(self, last_block):
-        """
-        Simple Proof of Work Algorithm:
-         - Find a number p' such that hash(pp') contains leading 4 zeroes
-         - Where p is the previous proof, and p' is the new proof
-
-        :param last_block: <dict> last Block
-        :return: <int>
-        """
-
         last_proof = last_block['proof']
         last_hash = hash(last_block).hexdigest()
 
@@ -236,6 +206,14 @@ class Blockchain:
 
         return proof
 
+@staticmethod
+def valid_proof(last_proof, proof, last_hash):
+    guess = f'{last_proof}{proof}{last_hash}'.encode()
+    guess_hash = hashlib.sha256(guess).hexdigest()
+    if guess_hash[:4] == "0000":
+        return True
+    else:
+        return False
 
 # blockchain = Blockchain()
 # blockchain.new_transaction(w1, w2, 5)

@@ -9,6 +9,7 @@ from threading import Thread
 from transaction import verify_transaction
 from uuid import uuid4
 from wallet import Wallet
+import copy
 
 app = Flask(__name__)
 
@@ -28,14 +29,14 @@ def generate_transactions(node_id):
         blockchain.new_transaction(blockchain.wallets[wallet1], blockchain.wallets[wallet2], amount, True)
         print(
             f'node {node_id} created a Transaction from Wallet {wallet1} to Wallet {wallet2} with {amount} COINS transfered')
-        sleep_time = random.randrange(10, 30)
+        sleep_time = random.randrange(2, 15)
         print(f'Next Transaction in {sleep_time} seconds')
         time.sleep(sleep_time)
 
 
 def generate_mining():
     while True:
-        sleep_time = (random.randrange(50, 100))
+        sleep_time = (random.randrange(10, 20))
         print(f"Mining in {sleep_time} seconds")
         time.sleep(sleep_time)
         blockchain.mine(current_node)
@@ -58,7 +59,7 @@ def new_transaction():
 
     response = {
         'message': f'Transaction will be added to the next Block',
-        'transaction': json.dumps(transaction.to_dict())
+        'transaction': transaction.to_dict()
     }
 
     return jsonify(response), 201
@@ -99,7 +100,9 @@ def broadcast_transaction():
     signature = transaction['signature']
     sender_wallet_public_key = bytes.fromhex(transaction['sender_wallet_public_key'])
     del transaction['signature']
-    print("Transaction received : ", transaction)
+    transaction_to_print = copy.copy(transaction)
+    del transaction_to_print['sender_wallet_public_key']
+    print("Transaction received : ", transaction_to_print)
     # print("Sender's wallet ID is : ", transaction["sender_wallet_ID"])
     # print("Signature is : ", signature)
     # print("Signature reconverted is : ", bytes.fromhex(signature))
